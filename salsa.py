@@ -100,13 +100,13 @@ def make_graph(graph):
     enchufala.add_signal("Hook turn", 4, closed)
     guapea.add_signal(1, "Raise left hand", 0, vuelta).resolves_to(enchufala)
     guapea.add_signal(1, "Take left hand with right", 0, el_camino).resolves_to(guapea)
-    guapea.add_signal(1, "Step backwards to make way", 0, dile_que_si).resolves_to(closed)
+    guapea.add_signal(1, "Make way", 0, dile_que_si).resolves_to(closed)
 
     closed.add_signal(1, "Step forward", 0, dile_que_no_start)
     dile_que_no_start.add_signal("Turn partner to the left and raise hand", 0, vamos_abajo).resolves_to(
         closed
     )
-    dile_que_no_start.add_signal("Complete", 5, guapea)
+    dile_que_no_start.add_signal("Make way", 5, guapea)
     closed.add_signal(5, "Lower left hand, then go forward", 4, tarro_de_mentira).resolves_to(closed)
     closed.add_signal(7, "Turn upper body of partner", 2, exhibala).resolves_to(closed)
 
@@ -139,6 +139,7 @@ def random_edge_traversal(graph, start_node, max_steps=10, randomizer=None):
 
         edge_attributes = edge_attributes[0]
 
+        waiting = 0
         if "start_beat" in edge_attributes:
             start_beat = edge_attributes["start_beat"]
             waiting = ((start_beat - 1) - current_beat) % 8
@@ -152,7 +153,7 @@ def random_edge_traversal(graph, start_node, max_steps=10, randomizer=None):
         node_type = node_attributes["node_type"]
         move_duration = node_attributes.get("duration", None)
 
-        current_beat = current_beat + edge_duration + (move_duration or 0)
+        current_beat = current_beat + waiting + edge_duration + (move_duration or 0)
 
         if number_of_neighbors == 1:
             if edge_duration > 0:
