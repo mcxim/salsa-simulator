@@ -112,75 +112,75 @@ def make_graph(graph):
 
     suelta.add_signal(7, "Hand on back", 2, dile_que_no_start)
 
-
-def random_edge_traversal(graph, start_node, max_steps=10, randomizer=None):
+def validate_start_node(graph, start_node):
     if start_node not in graph:
         print(f"Start node {start_node} is not in the graph.")
+        return False
+    return True
+
+def select_next_node(graph, current_node, randomizer):
+    neighbors = dict(graph[current_node].items())
+    if not neighbors:
+        print(f"No more neighbors to traverse from node {current_node}. Stopping traversal.")
+        return None, None
+    next_node = randomizer.choose(list(neighbors.keys())) if randomizer else random.choice(list(neighbors.keys()))
+    return next_node, neighbors[next_node]
+
+def process_edge_attributes(edge_attributes, current_beat):
+    edge_attributes = edge_attributes[0]
+    waiting = 0
+    if "start_beat" in edge_attributes:
+        start_beat = edge_attributes["start_beat"]
+        waiting = ((start_beat - 1) - current_beat) % 8
+        if waiting > 0:
+            print(f"Wait for beat {start_beat}, ", end="")
+    edge_duration = edge_attributes.get("duration", 0)
+    signal_description_available = "signal" in edge_attributes
+    return edge_duration, waiting, signal_description_available, edge_attributes
+
+def format_traversal_output(signal_description_available, edge_duration, node_type, next_node, move_duration, edge_attributes):
+    if signal_description_available:
+        signal_repr = f"Lead ({edge_attributes['signal']}) into"
+    elif edge_duration > 0:
+        signal_repr = "Naturally continue into"
+    elif node_type == "move":
+        signal_repr = "Perform"
+    else:
+        signal_repr = "You are now in"
+    
+    duration_repr = f"For {edge_duration} beats, " if edge_duration > 0 else ""
+    move_duration_repr = f" ({move_duration} beats)" if move_duration else ""
+    return f"{duration_repr}{signal_repr} {next_node}{move_duration_repr}"
+
+def traverse_graph(graph, start_node, max_steps=10, randomizer=None):
+    if not validate_start_node(graph, start_node):
         return
 
     current_node = start_node
     current_beat = 0
 
     for _ in range(max_steps):
-
-        number_of_neighbors = len(graph[current_node])
-
-        if number_of_neighbors == 0:
-            print(f"No more neighbors to traverse from node {current_node}. Stopping traversal.")
+        next_node, edge_attributes = select_next_node(graph, current_node, randomizer)
+        if not next_node:
             break
-        else:
-            neighbors = dict(graph[current_node].items())
-            if randomizer:
-                next_node = randomizer.choose(list(neighbors.keys()))
-            else:
-                next_node = random.choice(neighbors.keys())
 
-        edge_attributes = neighbors[next_node]
-
-        edge_attributes = edge_attributes[0]
-
-        waiting = 0
-        if "start_beat" in edge_attributes:
-            start_beat = edge_attributes["start_beat"]
-            waiting = ((start_beat - 1) - current_beat) % 8
-            if waiting > 0:
-                print(f"Wait for beat {start_beat}, ", end="")
-
-        signal_description_available = "signal" in edge_attributes
-        edge_duration = edge_attributes.get("duration", 0)
-        
+        edge_duration, waiting, signal_description_available, edge_attributes = process_edge_attributes(edge_attributes, current_beat)
         node_attributes = graph.nodes[next_node]
         node_type = node_attributes["node_type"]
         move_duration = node_attributes.get("duration", None)
 
-        current_beat = current_beat + waiting + edge_duration + (move_duration or 0)
-
-        if number_of_neighbors == 1:
-            if edge_duration > 0:
-                signal_repr = "Naturally continue into"
-            elif node_type == "move":
-                signal_repr = "Perform"
-            else:
-                signal_repr = "You are now in"
-            
-        else:
-            signal_repr = f"Lead ({edge_attributes['signal']}) into" if signal_description_available else "Lead into"
-
-        move_duration_repr = (f" ({move_duration} beats)" if move_duration else "")
-
-        duration_repr = f"For {edge_duration} beats, " if edge_duration > 0 else ""
-
-        print(f"{duration_repr}{signal_repr} {next_node}{move_duration_repr}")
+        current_beat += waiting + edge_duration + (move_duration or 0)
+        output = format_traversal_output(signal_description_available, edge_duration, node_type, next_node, move_duration, edge_attributes)
+        print(output)
 
         current_node = next_node
-
 
 def main():
     graph = nx.MultiDiGraph()
     make_graph(graph)
     randomizer = BiasedRandomChoice(graph.nodes, bias_factor=0.2)
     # nx.write_graphml(graph, "salsa_graph.gexf")
-    random_edge_traversal(graph, "Closed position", 100, randomizer)
+    traverse_graph(graph, "Closed position", 100, randomizer)
 
 
 if __name__ == "__main__":
