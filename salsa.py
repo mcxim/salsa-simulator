@@ -70,7 +70,8 @@ def make_graph(graph):
     prima_con_la_hermana = MoveNode("Prima Con La Hermana", 8)
     el_uno = MoveNode("El Uno", 24)
     kentucky = MoveNode("Kentucky", 16)
-    vacilala = MoveNode("Vacilala", 4)
+    vacilala = MoveNode("Vacilala", 4) # without la mano (=hand)
+    vacilala_con_la_mano = MoveNode("Vacilala Con La Mano", 4)
     vuelta = MoveNode("Vuelta", 8)
     ocho = MoveNode("Ocho", 4)
     enchufala = MoveNode("Enchufala", 4)
@@ -84,10 +85,12 @@ def make_graph(graph):
     guapea.add_signal(7, "?", 2, siete).resolves_to(guapea)
     guapea.add_signal(7, "Transfer to right hand", 2, el_uno).resolves_to(dile_que_no_start)
     guapea.add_signal(7, "Hold both hands", 2, kentucky).resolves_to(dile_que_no_start)
-    guapea.add_signal(7, "Pull hand then raise or release (with spin)", 2, vacilala)
-    vacilala.add_signal("Switch places", 4, enchufala)
+    guapea.add_signal(7, "Pull hand then release (with spin)", 2, vacilala)
     vacilala.add_signal("Hands not touching", 4, suelta)
     vacilala.add_signal("Right hand on back", 4, dile_que_no_start)
+    guapea.add_signal(7, "Pull hand then raise", 2, vacilala_con_la_mano)
+    vacilala_con_la_mano.add_signal("Switch places", 4, enchufala)
+    vacilala_con_la_mano.add_signal("Right hand on back", 4, dile_que_no_start)
     guapea.add_signal(7, "Foot and hand to the right", 2, ocho).resolves_to(guapea, 4)
     guapea.add_signal(7, "Pull hand", 2, prima_con_la_hermana).resolves_to(enchufala)
     guapea.add_signal(1, "Tension", 0, enchufala)
@@ -133,7 +136,7 @@ def random_edge_traversal(graph, start_node, max_steps=10):
             start_beat = edge_attributes["start_beat"]
             waiting = ((start_beat - 1) - current_beat) % 8
             if waiting > 0:
-                print(f"In {waiting} beats, on beat {start_beat}, ", end="")
+                print(f"Wait for beat {start_beat}, ", end="")
 
         signal_description_available = "signal" in edge_attributes
         edge_duration = edge_attributes.get("duration", 0)
