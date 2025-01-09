@@ -2,13 +2,13 @@
 Trying to represent cuban salsa as a state machine.
 """
 
+from pprint import pprint
 from typing import Protocol, Self
 import random
 import networkx as nx
 from networkx.classes.graph import Graph
 from contextvars import ContextVar
-
-random.seed(0)
+from randomizer import BiasedRandomChoice
 
 graph_var: ContextVar[Graph] = ContextVar("graph")
 
@@ -113,7 +113,7 @@ def make_graph(graph):
     suelta.add_signal(7, "Hand on back", 2, dile_que_no_start)
 
 
-def random_edge_traversal(graph, start_node, max_steps=10):
+def random_edge_traversal(graph, start_node, max_steps=10, randomizer=None):
     if start_node not in graph:
         print(f"Start node {start_node} is not in the graph.")
         return
@@ -122,13 +122,20 @@ def random_edge_traversal(graph, start_node, max_steps=10):
     current_beat = 0
 
     for _ in range(max_steps):
-        neighbors = list(graph[current_node].items())
 
-        if not neighbors:
+        number_of_neighbors = len(graph[current_node])
+
+        if number_of_neighbors == 0:
             print(f"No more neighbors to traverse from node {current_node}. Stopping traversal.")
             break
+        else:
+            neighbors = dict(graph[current_node].items())
+            if randomizer:
+                next_node = randomizer.choose(list(neighbors.keys()))
+            else:
+                next_node = random.choice(neighbors.keys())
 
-        next_node, edge_attributes = random.choice(neighbors)
+        edge_attributes = neighbors[next_node]
 
         edge_attributes = edge_attributes[0]
 
@@ -147,7 +154,7 @@ def random_edge_traversal(graph, start_node, max_steps=10):
 
         current_beat = current_beat + edge_duration + (move_duration or 0)
 
-        if len(neighbors) == 1:
+        if number_of_neighbors == 1:
             if edge_duration > 0:
                 signal_repr = "Naturally continue into"
             elif node_type == "move":
@@ -170,8 +177,9 @@ def random_edge_traversal(graph, start_node, max_steps=10):
 def main():
     graph = nx.MultiDiGraph()
     make_graph(graph)
-    # nx.write_gexf(graph, "salsa_graph.gexf")
-    random_edge_traversal(graph, "Closed position", 100)
+    randomizer = BiasedRandomChoice(graph.nodes, bias_factor=0.2)
+    # nx.write_graphml(graph, "salsa_graph.gexf")
+    random_edge_traversal(graph, "Closed position", 100, randomizer)
 
 
 if __name__ == "__main__":
