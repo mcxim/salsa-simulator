@@ -3,7 +3,6 @@ Trying to represent cuban salsa as a state machine.
 """
 
 from typing import Self
-from dub import create_instruction_audio
 from contextvars import ContextVar
 from networkx.classes.graph import Graph
 
@@ -74,20 +73,20 @@ def make_graph(graph):
     enchufala = MoveNode("Enchufala", 4)
     doble_of_enchufala = MoveNode("Doble", 4)
     complicado_of_enchufala = MoveNode("Complicado", 4)
-    dile_que_no_start = MoveNode("Dile Que No Start", 3)
-    vamos_abajo = MoveNode("Vamos Abajo", 5)
+    dile_que_no = MoveNode("Dile Que No", 8)
+    vamos_abajo = MoveNode("Vamos Abajo", 8)
     tarro_de_mentira = MoveNode("Tarro De Mentira", 8)
     exhibala = MoveNode("Exhibala", 8)
 
     guapea.add_signal(7, "?", 2, siete).resolves_to(guapea)
-    guapea.add_signal(7, "Transfer to right hand", 2, el_uno).resolves_to(dile_que_no_start)
-    guapea.add_signal(7, "Hold both hands", 2, kentucky).resolves_to(dile_que_no_start)
+    guapea.add_signal(7, "Transfer to right hand", 2, el_uno).resolves_to(dile_que_no)
+    guapea.add_signal(7, "Hold both hands", 2, kentucky).resolves_to(dile_que_no)
     guapea.add_signal(7, "Pull hand then release (with spin)", 2, vacilala)
     vacilala.add_signal("Hands not touching", 4, suelta)
-    vacilala.add_signal("Right hand on back", 4, dile_que_no_start)
+    vacilala.add_signal("Right hand on back", 4, dile_que_no)
     guapea.add_signal(7, "Pull hand then raise", 2, vacilala_con_la_mano)
     vacilala_con_la_mano.add_signal("Switch places", 4, enchufala)
-    vacilala_con_la_mano.add_signal("Right hand on back", 4, dile_que_no_start)
+    vacilala_con_la_mano.add_signal("Right hand on back", 4, dile_que_no)
     guapea.add_signal(7, "Foot and hand to the right", 2, ocho).resolves_to(guapea, 4)
     guapea.add_signal(7, "Pull hand", 2, prima_con_la_hermana).resolves_to(enchufala)
     guapea.add_signal(1, "Tension", 0, enchufala)
@@ -101,13 +100,11 @@ def make_graph(graph):
     )
     guapea.add_signal(1, "Make way", 0, dile_que_si).resolves_to(closed)
 
-    closed.add_signal(1, "Step forward", 0, dile_que_no_start)
-    dile_que_no_start.add_signal("Turn partner to the left and raise hand", 0, vamos_abajo).resolves_to(
-        closed
-    )
-    dile_que_no_start.add_signal("Make way", 5, guapea)
+    closed.add_signal(1, "Step forward", 0, dile_que_no)
+    closed.add_signal(1, "Turn partner to the left and raise hand", 0, vamos_abajo).resolves_to(closed)
+    dile_que_no.add_signal("Make way", 5, guapea)
     closed.add_signal(5, "Lower left hand, then go forward", 4, tarro_de_mentira).resolves_to(closed)
     closed.add_signal(7, "Turn upper body of partner", 2, exhibala).resolves_to(closed)
 
-    suelta.add_signal(7, "Hand on back", 2, dile_que_no_start)
+    suelta.add_signal(7, "Hand on back", 2, dile_que_no)
     suelta.add_signal(7, "No hand on back", 2, suelta)
