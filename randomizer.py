@@ -45,7 +45,9 @@ class BiasedRandomChoice:
                 self.weights[item] *= self.bias_factor  # Reduce weight for the chosen item
             else:
                 # Gradually recover weights for all other items
-                self.weights[item] = min(1, self.weights[item] + self.recovery_rate * (1 - self.weights[item]))
+                self.weights[item] = min(
+                    1, self.weights[item] + self.recovery_rate * (1 - self.weights[item])
+                )
 
         self.last_chosen = chosen_item
         return chosen_item
