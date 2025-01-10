@@ -14,7 +14,7 @@ def main():
 
     walk_graph(
         graph,
-        "Closed position",
+        "Guapea position",
         30,
         randomizer,
         callbacks=[get_instruction_collector_callback(instructions), describe],
