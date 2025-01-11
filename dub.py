@@ -3,7 +3,12 @@ from pydub import AudioSegment
 from pydub.generators import Sine
 from io import BytesIO
 from itertools import groupby
+from typing import NamedTuple
 import os
+
+class TimedInstruction(NamedTuple):
+    instruction: str
+    beat: int
 
 
 def text_to_audio_chunk(text, cache_dir="audio_cache"):
@@ -77,7 +82,7 @@ def create_instruction_audio(instructions, bpm, output_file="output.mp3"):
         # Calculate timing for this and the next instruction
         current_start_time = int((beat - 1) * beat_interval * 1000)  # Current instruction start time (ms)
         next_start_time = (
-            int((instructions[i + 1][1] - 1) * beat_interval * 1000) if i + 1 < len(instructions) else None
+            int((instructions[i + 1].beat - 1) * beat_interval * 1000) if i + 1 < len(instructions) else None
         )
 
         # Calculate available time for this instruction
@@ -100,7 +105,7 @@ def create_instruction_audio(instructions, bpm, output_file="output.mp3"):
         # Append the instruction audio
         combined_audio += instruction_audio
 
-    metronome = create_metronome_track(bpm, instructions[-1][1] + 8)
+    metronome = create_metronome_track(bpm, instructions[-1].beat + 8)
 
     final_audio = metronome.overlay(combined_audio)
 
@@ -111,8 +116,8 @@ def create_instruction_audio(instructions, bpm, output_file="output.mp3"):
 
 def correct_times(instructions):
     return [
-        (" i ".join([item[0] for item in group]), key)
-        for key, group in groupby(instructions, key=lambda x: x[1])
+        TimedInstruction(" i ".join([ins.instruction for ins in group]), beat)
+        for beat, group in groupby(instructions, key=lambda ins: ins.beat)
     ]
 
 
@@ -126,6 +131,6 @@ def get_instruction_collector_callback(instructions):
         #     instruction_beat = signal_beat - 4
         # else:
         #     instruction_beat = signal_beat // 4 * 4
-        instructions.append((params.next_node, instruction_beat))
+        instructions.append(TimedInstruction(params.next_node, instruction_beat))
 
     return callback
