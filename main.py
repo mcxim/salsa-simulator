@@ -9,13 +9,13 @@ def main():
     graph = nx.MultiDiGraph()
     make_graph(graph)
 
-    randomizer = BiasedRandomChoice(graph.nodes, bias_factor=0.0)
+    randomizer = BiasedRandomChoice(graph.nodes, bias_factor=0.0, recovery_rate=0.03)
     instructions = []
 
     walk_graph(
         graph,
-        "Guapea position",
-        30,
+        "Suelta position",
+        100,
         randomizer,
         callbacks=[get_instruction_collector_callback(instructions), describe],
     )
