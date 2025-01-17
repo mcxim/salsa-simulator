@@ -9,7 +9,11 @@ It also contains code that performs a random walk on the graph and calls callbac
 * Printing human-readable instructions, containing the "signs" for the partner and the moves.
 * Collecting beats and moves to generate a track with a metronome and overlayed real-time audio instructions. Can be used to generate training sessions of any length.
 
-Example instructions:
+This is how the graph looks in Gephi (Containing only the names of the nodes, duration and signals omitted):
+
+![](./img/graph.png)
+
+Example generated instructions by random walk:
 
 ```
 Wait for beat 7, For 2 beats, Pull hand then release (with spin) into Vacilala (4 beats)
